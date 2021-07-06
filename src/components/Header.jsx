@@ -55,7 +55,7 @@ export default function ButtonAppBar() {
   });
 }
   function handleChangeVideoButton() {
-    stream.getVideoTracks().enabled = !stream.getVideoTracks().enabled;
+    stream.getVideoTracks()[0].enabled = !stream.getVideoTracks()[0].enabled;
     setVideoButton(!videoButton);
   }
 

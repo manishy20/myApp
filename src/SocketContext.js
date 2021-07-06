@@ -30,7 +30,7 @@ const ContextProvider = ({ children }) => {
   useEffect(() => {
 
     navigator.mediaDevices
-      .getUserMedia({ video: true,})
+      .getUserMedia({ video: true, audio: true})
       .then((stream) => {
         setStream(stream);
         myVideo.current.srcObject = stream;
