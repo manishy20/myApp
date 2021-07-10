@@ -31,6 +31,23 @@ io.on("connection", (socket) => {
         io.to(data.to).emit("message", data)
         io.to(data.from).emit("message", data)
     })
+
+    socket.on("connection request", (data) => {
+        io.to(data.id).emit("connection",data.from);
+    })
+
+    socket.on("connection success", (data) => {
+        io.to(data.id).emit("success", data.from);
+    })
+
+    socket.on("on_disconnect", (id) => {
+      io.to(id).emit("userDisconnected", id);
+    });
+
+    socket.on("on_leave", (id) => {
+      io.to(id).emit("userLeft", id);
+    });
+
 })
 
 server.listen(5000, () => console.log("server is running on port 5000"))

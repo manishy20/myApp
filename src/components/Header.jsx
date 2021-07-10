@@ -4,15 +4,9 @@ import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from "@material-ui/icons/Menu";
-import VideocamIcon from "@material-ui/icons/Videocam";
-import VideocamOffIcon from "@material-ui/icons/VideocamOff";
-import MicIcon from "@material-ui/icons/Mic";
-import MicOffIcon from "@material-ui/icons/MicOff";
-import ScreenShareIcon from "@material-ui/icons/ScreenShare";
-import Tooltip from "@material-ui/core/Tooltip";
-import Zoom from "@material-ui/core/Zoom";
+import VideoOnOffButton from "./VideoOnOffButton";
+import MicOnOffButton from "./MicOnOffButton";
+import { Phone, PhoneDisabled } from "@material-ui/icons";
 
 import { SocketContext } from "../SocketContext";
 
@@ -23,102 +17,93 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
+
+  makeACall: {
+    display: "flex",
+    paddingInline: theme.spacing(1),
+  },
 }));
 
-export default function ButtonAppBar() {
+function Header() {
   const classes = useStyles();
 
   const {
-    setVideoButton,
-    videoButton,
-    setMicButton,
-    micButton,
-    myVideo,
-    stream,
-    setStream,
-    shareScreen,
+    connected,
+    callAccepted,
+    idToCall,
+    callUser,
+    callEnded,
+    hangUpCall,
+    leaveMeeting,
   } = useContext(SocketContext);
-
-  function screenShare() {
-    stream.getVideoTracks()[0].stop();
-
-    navigator.mediaDevices
-      .getDisplayMedia({ cursor: true, audio: true })
-      .then((captureStreamTrack) => {
-    setStream(captureStreamTrack);
-// stream[0].getVideoTracks()[0].stop();
-// stream[0].replaceTrack(
-//   stream[0].getVideoTracks()[0],
-//   captureStreamTrack,
-//   stream[0]
-// );
-  });
-}
-  function handleChangeVideoButton() {
-    stream.getVideoTracks()[0].enabled = !stream.getVideoTracks()[0].enabled;
-    setVideoButton(!videoButton);
-  }
-
-  function handleChangeAudioButton() {
-    stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0].enabled;
-    setMicButton(!micButton);
-  }
 
   return (
     <div className={classes.root}>
-      <AppBar position="static">
+      <AppBar position="static" color={connected ? "primary" : "default"}>
         <Toolbar>
-          <Typography variant="h6" className={classes.title}>
-            Video Chat App
-          </Typography>
-          <Tooltip
-            title={videoButton ? "Turn your camera off" : "Turn your camera on"}
-            placement="top"
-            arrow
-            TransitionComponent={Zoom}
-          >
-            <Button
-              color="inherit"
-              onClick={handleChangeVideoButton}
-              startIcon={
-                videoButton ? (
-                  <VideocamIcon />
-                ) : (
-                  <VideocamOffIcon color="secondary" />
-                )
-              }
-            ></Button>
-          </Tooltip>
+          {!connected ? (
+            <Typography
+              variant="h6"
+              className={classes.title}
+              color="textSecondary"
+            >
+              Not Connected
+            </Typography>
+          ) : (
+            <Typography variant="h6" className={classes.title}>
+              Connected
+            </Typography>
+          )}
 
-          <Tooltip
-            title={micButton ? "Turn your mic off" : "Turn your mic on"}
-            placement="top"
-            arrow
-            TransitionComponent={Zoom}
-          >
-            <Button
-              color="inherit"
-              onClick={handleChangeAudioButton}
-              startIcon={
-                micButton ? <MicIcon /> : <MicOffIcon color="secondary" />
-              }
-            ></Button>
-          </Tooltip>
+          {connected ? (
+            <div className={classes.makeACall}>
+              {callAccepted && !callEnded ? (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<PhoneDisabled fontSize="large" />}
+                  fullWidth
+                  onClick={hangUpCall}
+                >
+                  Hang Up
+                </Button>
+              ) : (
+                <div className={classes.makeACall}>
+                  <div>
+                    <Button
+                      variant="contained"
+                      startIcon={<Phone fontSize="large" />}
+                      onClick={leaveMeeting}
+                      color="secondary"
+                      className={classes.makeACall}
+                    >
+                      Leave Meet
+                    </Button>
+                  </div>
+                  <div className={classes.makeACall}>
+                    <Button
+                      variant="contained"
+                      startIcon={<Phone fontSize="large" />}
+                      onClick={() => callUser(idToCall)}
+                    >
+                      Make a call
+                    </Button>
+                  </div>
+                </div>
+              )}
 
-          <Tooltip
-            title="Share your screen"
-            placement="top"
-            arrow
-            TransitionComponent={Zoom}
-          >
-            <Button
-              color="inherit"
-              onClick={screenShare}
-              startIcon={<ScreenShareIcon />}
-            ></Button>
-          </Tooltip>
+              <VideoOnOffButton />
+              <MicOnOffButton />
+            </div>
+          ) : (
+            <div className={classes.makeACall}>
+              <VideoOnOffButton />
+              <MicOnOffButton />
+            </div>
+          )}
         </Toolbar>
       </AppBar>
     </div>
   );
 }
+export default Header;

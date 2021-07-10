@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState, createContext } from "react";
 import Peer from "simple-peer";
 import io from "socket.io-client";
-import "./App.css";
-
 const SocketContext = createContext();
 
 const socket = io.connect("http://localhost:5000");
@@ -11,13 +9,13 @@ const ContextProvider = ({ children }) => {
   const [me, setMe] = useState("");
   const [stream, setStream] = useState();
   const [isReceivingCall, setReceivingCall] = useState(false);
+  const [connected, setConnected] = useState(false);
   const [caller, setCaller] = useState("");
   const [idToCall, setIdToCall] = useState("");
-  const [userIdToCall, setUserIdToCall] = useState("");
   const [callerSignal, setCallerSignal] = useState();
   const [callAccepted, setCallAccepted] = useState(false);
-  const [callEnded, setCallEnded] = useState(false);
   const [name, setName] = useState("");
+  const [userName, setUserName] = useState("");
   const [videoButton, setVideoButton] = useState(true);
   const [micButton, setMicButton] = useState(true);
 
@@ -28,33 +26,34 @@ const ContextProvider = ({ children }) => {
   const connectionRef = useRef();
 
   useEffect(() => {
-
     navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true})
+      .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         setStream(stream);
         myVideo.current.srcObject = stream;
       });
-    
+
     socket.on("me", (id) => {
       setMe(id);
+    });
+
+    socket.on("connection", (id) => {
+      connection(id);
     });
 
     socket.on("callUser", (data) => {
       setReceivingCall(true);
       setCaller(data.from);
-      setName(data.name);
+      setUserName(data.name);
       setCallerSignal(data.signal);
     });
 
     socket.on("message", (message) => {
       if (message.body !== "") {
         receivedMessage(message);
-        if (message.from != me) setUserIdToCall(message.from);
       }
     });
-  }, []);
-
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function receivedMessage(message) {
     setMessages((oldMsgs) => [...oldMsgs, message]);
@@ -65,12 +64,34 @@ const ContextProvider = ({ children }) => {
     const messageObject = {
       body: message,
       from: me,
-      to: idToCall || userIdToCall,
+      to: idToCall,
     };
 
     setMessage("");
     socket.emit("send message", messageObject);
   }
+
+  function callConnect(id) {
+    const idObject = {
+      from: me,
+      id: id,
+    };
+    socket.emit("connection request", idObject);
+  }
+
+  function connection(id) {
+    setIdToCall(id);
+    setConnected(true);
+    const idObject = {
+      from: me,
+      id: id,
+    };
+    socket.emit("connection success", idObject);
+  }
+
+  socket.on("success", (id) => {
+    setConnected(true);
+  });
 
   const callUser = (id) => {
     const peer = new Peer({
@@ -79,9 +100,11 @@ const ContextProvider = ({ children }) => {
       stream: stream,
     });
 
+    peer.on("error", (err) => console.log("error", err));
+
     peer.on("signal", (data) => {
       socket.emit("callUser", {
-        userToCall: id,
+        userToCall: idToCall,
         signalData: data,
         from: me,
         name: name,
@@ -90,6 +113,7 @@ const ContextProvider = ({ children }) => {
     peer.on("stream", (stream) => {
       userVideo.current.srcObject = stream;
     });
+
     socket.on("callAccepted", (signal) => {
       setCallAccepted(true);
       peer.signal(signal);
@@ -97,10 +121,8 @@ const ContextProvider = ({ children }) => {
     connectionRef.current = peer;
   };
 
-
   const answerCall = () => {
     setCallAccepted(true);
-    setUserIdToCall(caller);
     const peer = new Peer({
       initiator: false,
       trickle: false,
@@ -116,13 +138,26 @@ const ContextProvider = ({ children }) => {
     connectionRef.current = peer;
   };
 
-  const leaveCall = () => {
-    setCallEnded(true);
+  const hangUpCall = () => {
     setCallAccepted(false);
     setReceivingCall(false);
+    socket.emit("on_disconnect", idToCall);
     connectionRef.current.destroy();
-    // window.location.reload();
   };
+
+  const leaveMeeting = () => {
+    socket.emit("on_leave", idToCall);
+    window.location.reload();
+  }
+
+  socket.on("userDisconnected", (id) => {
+    setCallAccepted(false);
+    setReceivingCall(false);
+  });
+
+   socket.on("userLeft", (id) => {
+ window.location.reload();
+   });
 
   return (
     <SocketContext.Provider
@@ -137,7 +172,7 @@ const ContextProvider = ({ children }) => {
         setName,
         me,
         callUser,
-        leaveCall,
+        hangUpCall,
         answerCall,
         isReceivingCall,
         message,
@@ -150,6 +185,12 @@ const ContextProvider = ({ children }) => {
         setIdToCall,
         setMicButton,
         micButton,
+        callConnect,
+        connected,
+        setConnected,
+        userName,
+        setUserName,
+        leaveMeeting,
       }}
     >
       {children}

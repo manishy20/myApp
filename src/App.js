@@ -1,44 +1,68 @@
 import React from "react";
-import { Typography, AppBar, Toolbar, Grid, Box , Paper} from "@material-ui/core";
+import { Grid, Box } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-
 import VideoPlayer from "./components/VideoPlayer";
-import Sidebar from "./components/Sidebar";
-import Notifications from "./components/Notifications";
+import Options from "./components/Options";
 import Chat from "./components/Chat";
 import Header from "./components/Header";
+import AnswerDialogBox from "./components/AnswerDialogBox";
 
 const useStyles = makeStyles((theme) => ({
+  gridContainer: {
+    display: "grid",
+    width: "100%",
+    alignItems: "center",
+    alignContent: "center",
+    justify: "center",
+    [theme.breakpoints.down("xs")]: {
+      flexDirection: "column",
+    },
+  },
+
   appBar: {
     margin: 0,
     gridColumn: "1 / 4",
     gridRow: "1 / 2",
-  },
-  wrapper: {
-    display: "grid",
-    gridGap: "5px",
-    gridTemplateColumns: "550px 550px auto ",
-    gridTemplateRow: "100 600px auto",
-    alignContent: "center",
+    [theme.breakpoints.down("xs")]: {
+      gridColumn: "1 / 2",
+    },
   },
 
   chat: {
-    background: "white",
     justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
+    margin: theme.spacing(1),
     gridRow: "2 / 4",
     gridColumn: "3 / 4",
     marginRight: "3px",
+    [theme.breakpoints.down("md")]: {
+      gridRow: "3 / 4",
+      gridColumn: "1 / 2",
+      width: "90%",
+    },
   },
-  sidebar: {
+  options: {
     display: "flex",
     gridColumn: "1 / 3",
     gridRow: "3 / 4",
     justifyContent: "center",
     alignContent: "center",
+
+    [theme.breakpoints.down("md")]: {
+      gridRow: "4 / 5",
+      gridColumn: "1 / 2",
+      width: "90%",
+    },
   },
   video: {
     gridColumn: "1 / 3",
     gridRow: "2 / 3",
+    [theme.breakpoints.down("xs")]: {
+      gridColumn: "1 / 2",
+      gridRow: "2 / 3",
+      width: "80%",
+    },
   },
 }));
 
@@ -47,8 +71,7 @@ const App = () => {
 
   return (
     <div>
-      <Grid container className={classes.wrapper}>
-
+      <Grid container className={classes.gridContainer}>
         <Grid item className={classes.appBar}>
           <Header />
         </Grid>
@@ -63,10 +86,11 @@ const App = () => {
           </Box>
         </Grid>
 
-        <Grid item className={classes.sidebar}>
-          <Sidebar>
-            <Notifications />
-          </Sidebar>
+        <Grid item className={classes.options}>
+          <Options />
+        </Grid>
+        <Grid>
+          <AnswerDialogBox />
         </Grid>
       </Grid>
     </div>

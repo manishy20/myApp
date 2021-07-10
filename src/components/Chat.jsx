@@ -1,107 +1,104 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
-import styled from "styled-components";
+import React, { useEffect, useRef, useContext } from "react";
 import ReactEmoji from "react-emoji";
+import { Button, Input, makeStyles } from "@material-ui/core";
 
 import { SocketContext } from "../SocketContext";
 
+const useStyles = makeStyles((theme) => ({
+  page: {
+    display: "flex",
+    height: "100%",
+    width: "100%",
+    alignItems: "center",
+    backgroundColor: "white",
+    flexDirection: "column",
+  },
 
+  container: {
+    width: "95%",
+    height: "480px",
+    maxHeight: "500px",
+    overflow: "auto",
+    border: "1px solid lightgray",
+    borderRadius: "5px",
+    padding: "5px",
+    marginTop: "5px",
+  },
 
-const Page = styled.div`
-  display: flex;
-  height: 100%;
-  width: 100%;
-  align-items: center;
-  background-color: white;
-  flex-direction: column;
-`;
+  input: {
+    width: "98%",
+    height: "50px",
+    borderRadius: "10px",
+    paddingLeft: "10px",
+    margin: "5px",
+    backgroundColor: "transparent",
+    border: "1px solid lightgray",
+    outline: "none",
+    color: "black",
+    wordBreak: "break-word",
+  },
 
-const Container = styled.div`
-width: 95%%;
- 
-  height: 480px;
-  max-height: 500px;
-  overflow: auto;
-  width: 400px;
-  border: 1px solid lightgray;
-  border-radius: 5px;
-  padding: 5px;
-  margin-top: 5px;
-`;
+  button: {
+    margin: "5px",
+    width: "97%",
+    border: "none",
+    height: "50px",
+    borderRadius: "10px",
+    color: "white",
+    fontSize: "17px",
+  },
 
-const Input = styled.input`
-  width: 95%;
-  height: 50px;
-  border-radius: 10px;
-  padding: 5px;
-  margin: 5px;
-  background-color: transparent;
-  border: 1px solid lightgray;
-  outline: none;
-  color: black;
-  letter-spacing: 1px;
-  word-break: break-word;
-  ${"" /* line-height: 20px; */}
-  ::placeholder {
-    color: lightgray;
-  }
-`;
+  form: {
+    width: "100%",
+    padding: "5px",
+    alignItems: "bottom center",
+  },
 
-const Button = styled.button`
-  background-color: #005cbf;
-  margin: 5px;
-  width: 97%;
-  border: none;
-  height: 50px;
-  border-radius: 10px;
-  color: white;
-  font-size: 17px;
-`;
+  myRow: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "flex-end",
+    marginTop: "10px",
+    overflowWrap: "break-word",
+  },
 
-const Form = styled.form`
-  width: 100%;
-  padding: 5px;
-  align-items: bottom center;
-`;
+  myMessage: {
+    width: "45%",
+    backgroundColor: "#3395ff",
+    color: "white",
+    padding: "10px",
+    marginRight: "5px",
+    textAlign: "center",
+    borderTopLeftRadius: "5px",
+    borderBottomLeftRadius: "5px",
+  },
 
-const MyRow = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
-  overflow-wrap: break-word;
-`;
+  partnerRow: {
+    width: "100%",
+    display: "flex",
+    marginTop: "10px",
+    overflowWrap: "break-word",
+    justifyContent: "flex-start",
+  },
 
-const MyMessage = styled.div`
-  width: 45%;
-  background-color: #3395ff;
-  color: white;
-  padding: 10px;
-  margin-right: 5px;
-  text-align: center;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-`;
+  partnerMessage: {
+    width: "45%",
+    backgroundColor: "#EAEAEA",
+    color: "black",
+    border: "1px solid lightgray",
+    padding: "10px",
+    marginLeft: "5px",
+    textAlign: "center",
+    borderTopRightRadius: "5px",
+    borderBottomRightRadius: "5px",
+  },
+}));
 
-const PartnerRow = styled(MyRow)`
-  justify-content: flex-start;
-`;
+const Chat = () => {
+  const classes = useStyles();
 
-const PartnerMessage = styled.div`
-  width: 45%;
-  background-color: #EAEAEA;
-  color: black;
-  border: 1px solid lightgray;
-  padding: 10px;
-  margin-left: 5px;
-  text-align: center;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-`;
-
-const App = () => {
-    const { me, message, messages, sendMessage,setMessage,caller } =
-      useContext(SocketContext);
-
+  const { me, message, messages, sendMessage, setMessage } =
+    useContext(SocketContext);
 
   function handleChange(e) {
     setMessage(e.target.value);
@@ -119,37 +116,50 @@ const App = () => {
   }, [messages]);
 
   return (
-    <Page>
-      <Container>
-        {messages.map((message, index) => {
+    <div className={classes.page}>
+      <div className={classes.container}>
+        {messages.map((message) => {
           if (message.from === me) {
             return (
-              <MyRow key={index}>
-                <MyMessage>{ReactEmoji.emojify(message.body)}</MyMessage>
-              </MyRow>
+              <div className={classes.myRow}>
+                <div className={classes.myMessage}>
+                  {ReactEmoji.emojify(message.body)}
+                </div>
+              </div>
             );
           } else
             return (
-              <PartnerRow key={index}>
-                <PartnerMessage>
+              <div className={classes.partnerRow}>
+                <div className={classes.partnerMessage}>
                   {ReactEmoji.emojify(message.body)}
-                </PartnerMessage>
-              </PartnerRow>
+                </div>
+              </div>
             );
         })}
         <div ref={messagesEndRef} />
-      </Container>
-      <Form onSubmit={sendMessage}>
+      </div>
+      <form onSubmit={sendMessage} className={classes.form}>
         <Input
+          className={classes.input}
           value={message}
+          fullWidth
           onChange={handleChange}
           onKeyPress={(e) => e.key === "Enter" && { sendMessage }}
-          placeholder="Say something..."
-        />
-        <Button>Send</Button>
-      </Form>
-    </Page>
+          placeholder="Type Your Message here..."
+        ></Input>
+        <Button
+          className={classes.button}
+          variant="contained"
+          fullWidth
+          color="primary"
+          onClick={sendMessage}
+          type="button"
+        >
+          Send
+        </Button>
+      </form>
+    </div>
   );
 };
 
-export default App;
+export default Chat;
